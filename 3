@@ -1,0 +1,12 @@
+import pandas as pd
+import numpy as np
+from sklearn. datasets import fetch_california_housing
+from sklearn. model _ selection import train_test_split
+from sklearn. linear_model import LinearRegression
+from sklearn. metrics Import r2_score
+housing = fetch_california_housing()
+df = pd.DataFrame(housing.data, columns—housing.feature_names)
+df['Target'] = housing.target
+print (df. head())
+x = df.drop('Target' , axis = 1)
+y = df['Target']
