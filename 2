@@ -1,0 +1,114 @@
+import time
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt 
+from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+data = load_breast_cancer()
+X = data.data
+Y = data.target
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+X_train,X_test,Y_train,Y_test = train_test_split(X,Y,test_size = 0.30,random_state = 42)
+model = LogisticRegression(max_iter = 500)
+start = time.time()
+model.fit(X_train,Y_train)
+train_time = time.time() - start
+pred = model.predict(X_test)
+acc_original = accuracy_score(Y_test, pred)
+print ("Original Features")
+print ("----------------")
+print ("Features : ",X_train.shape[1])
+print ("Accuracy :",acc_original)
+print ("Training Time :",train_time)
+
+pca = PCA(n_components = 10)
+X_train_pca = pca.fit_transform(X_train)
+X_test_pca = pca.fit_transform(X_test)
+model_pca = LogisticRegression(max_iter = 500)
+start = time.time()
+model_pca.fit(X_train_pca,Y_train)
+train_time_pca = time.time() - start
+pred_pca = model_pca.predict(X_test_pca)
+acc_pca = accuracy_score(Y_test,pred_pca)
+print ("\nPCA")
+print ("----------------")
+print ("Features : ",X_train_pca.shape[1])
+print ("Accuracy :",acc_pca)
+print ("Training Time:",train_time_pca)
+lda = LinearDiscriminantAnalysis(n_components = 1)
+X_train_lda = lda.fit_transform(X_train,Y_train)
+X_test_lda = lda.transform(X_test)
+model_lda = LogisticRegression(max_iter = 500)
+start = time.time()
+model_lda.fit(X_train_lda,Y_train)
+train_time_lda = time.time() - start
+pred_lda = model_lda.predict(X_test_lda)
+acc_lda = accuracy_score(Y_test,pred_lda)
+print ("\\nLDA")
+print ("-----------")
+print ("Features :",X_train_lda.shape[1])
+print ("Accuracy :",acc_lda)
+print ("Training Time :",train_time_lda)
+result = pd.DataFrame({
+    "Method" : ["Original","PCA","LDA"],
+    "Features" : [30,10,1],
+    "Accuracy" : [acc_original,acc_pca,acc_lda],
+    "Training Time" : [train_time,train_time_pca,train_time_lda]
+    })
+print("\nsummary")
+print(result)
+
+plt.figure(figsize=(6,4))
+plt.bar(result["Method"], result["Accuracy"])
+plt.title("Accuracy Comparison")
+plt.ylabel("Accuracy")
+plt.ylim(0, 1)
+plt.show()
+
+plt.figure(figsize=(6,4))
+plt.bar(result["Method"], result["Training Time"])
+plt.title("Training Time Comparison")
+plt.ylabel("Time (seconds)")
+plt.show()
+
+plt.figure(figsize=(6,5))
+plt.scatter(X_pca_2[:,0], X_pca_2[:,1], c=data.target, cmap="viridis")
+plt.title("PCA 2D Visualization")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.colorbar(label="Class")
+plt.show()
+
+data = load_breast_cancer()
+X = data.data
+y = data.target
+X = StandardScaler().fit_transform(X)
+lda = LinearDiscriminantAnalysis(n_components=1)
+X_lda = lda.fit_transform(X, y)
+plt.figure(figsize=(8, 4))
+plt.scatter(
+X_lda[y == 0],
+[0] * sum(y == 0),
+color="red",
+s=40,
+label="Malignant"
+)
+plt.scatter(
+X_lda[y == 1],
+[1] * sum(y == 1),
+color="blue",
+s=40,
+label="Benign"
+)
+plt.xlabel("LDA Component 1")
+plt.ylabel("Class")
+plt.yticks([0, 1], ["Malignant", "Benign"])
+plt.title("LDA Visualization")
+plt.grid(alpha=0.3)
+plt.show()
